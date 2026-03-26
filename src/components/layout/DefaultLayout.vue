@@ -1,52 +1,57 @@
+<template>
+  <el-container class="common-layout">
+    <el-aside width="200px">
+      <Sidebar />
+    </el-aside>
+    <el-container>
+      <el-header class="layout-header">
+        <div class="header-content">
+          <span class="page-title">{{ $route.meta.title || '运营平台' }}</span>
+          <!-- User info or other header elements can go here -->
+        </div>
+      </el-header>
+      <el-main>
+        <router-view />
+      </el-main>
+    </el-container>
+  </el-container>
+</template>
+
 <script setup>
 import Sidebar from './Sidebar.vue';
 </script>
 
-<template>
-  <div class="default-layout">
-    <Sidebar />
-    <main class="main-content">
-      <header class="header">
-        <h2 class="page-title">身份信息报送</h2>
-      </header>
-      <div class="content-area">
-        <slot></slot>
-      </div>
-    </main>
-  </div>
-</template>
-
 <style scoped>
-.default-layout {
-  display: flex;
-  width: 100%;
+.common-layout {
+  height: 100vh;
 }
 
-.main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  background-color: var(--color-background);
+.el-aside {
+  background-color: #304156;
+  color: #fff;
+  box-shadow: 2px 0 6px rgba(0, 21, 41, 0.35);
+  z-index: 100;
 }
 
-.header {
-  background-color: var(--color-background-soft);
-  padding: 15px 30px;
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+.layout-header {
   display: flex;
   align-items: center;
-  min-height: 60px; /* Adjust header height */
+  justify-content: space-between;
+  padding: 0 20px;
+  background-color: #fff;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  z-index: 99;
 }
 
 .page-title {
-  margin: 0;
-  font-size: 20px;
-  color: var(--color-text-dark);
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
 }
 
-.content-area {
-  padding: 20px 30px;
-  flex-grow: 1;
+.el-main {
+  padding: 20px;
+  background-color: #f0f2f5;
+  overflow-y: auto;
 }
 </style>
