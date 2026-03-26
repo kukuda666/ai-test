@@ -1,11 +1,13 @@
 <script setup>
-import DefaultLayout from './components/layout/DefaultLayout.vue';
+import DefaultLayout from '@/components/layout/DefaultLayout.vue';
 </script>
 
 <template>
-  <DefaultLayout />
+  <DefaultLayout>
+    <router-view />
+  </DefaultLayout>
 </template>
 
 <style scoped>
-/* Global app styles can go here if not in main.css */
+/* App-level styles if any */
 </style>
