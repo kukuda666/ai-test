@@ -1,143 +1,58 @@
-/* src/assets/main.css */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap');
-
-:root {
-  --color-background: #f4f5f7;
-  --color-background-soft: #ffffff;
-  --color-text-dark: #333;
-  --color-text-light: #666;
-  --color-primary: #4a90e2; /* A blue that looks close to the image */
-  --color-primary-dark: #357bd8;
-  --color-sidebar-bg: #34495e; /* Dark blue from sidebar */
-  --color-sidebar-text: #ecf0f1; /* Light text for sidebar */
-  --color-border: #e0e0e0;
-  --color-table-header: #f2f2f2;
-  --color-success: #5cb85c;
-  --color-warning: #f0ad4e;
-  --color-info-bg: #f9f0d1; /* Yellowish hint box */
-}
-
-body {
-  margin: 0;
-  font-family: 'Noto Sans SC', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: var(--color-background);
-  color: var(--color-text-dark);
-}
+@import './base.css';
 
 #app {
-  display: flex;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #2c3e50;
   min-height: 100vh;
+  display: flex;
 }
 
-/* Basic utility classes */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.button {
-  padding: 8px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  border: 1px solid var(--color-primary);
-  background-color: var(--color-primary);
-  color: #fff;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-
-.button:hover {
-  background-color: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
-}
-
-.button.secondary {
-  background-color: #fff;
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-}
-
-.button.secondary:hover {
-  background-color: #f0f8ff;
-}
-
-.input-field {
-  padding: 8px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.input-field:focus {
-  border-color: var(--color-primary);
-}
-
-.card {
-  background-color: var(--color-background-soft);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 20px;
-}
-
-.alert-info {
-  background-color: var(--color-info-bg);
-  border-left: 5px solid var(--color-warning); /* Use warning color for accent */
-  padding: 15px;
-  margin-bottom: 20px;
-  border-radius: 4px;
-  color: var(--color-text-dark);
-}
-
-/* Modal styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
+/* Basic layout adjustments for Element Plus integration */
+.el-container {
   width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
 }
 
-.modal-content {
-  background-color: var(--color-background-soft);
-  border-radius: 8px;
+.el-aside {
+  background-color: #304156;
+}
+
+.el-header {
+  background-color: #fff;
+  color: #333;
+  line-height: 60px;
+  border-bottom: 1px solid #eee;
+  padding: 0 20px;
+}
+
+.el-main {
+  background-color: #f0f2f5;
   padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 300px;
-  max-width: 500px;
-  position: relative;
 }
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  font-size: 18px;
-  font-weight: bold;
+.el-menu {
+  border-right: none;
 }
 
-.modal-close-button {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--color-text-light);
-}
-
-.modal-body {
+/* Custom styles for search and table components */
+.search-area {
+  background-color: #fff;
+  padding: 20px;
   margin-bottom: 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
-.modal-footer {
-  text-align: right;
+.table-area {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.el-table__header-wrapper th {
+  background-color: #f5f7fa !important;
+  color: #606266;
+  font-weight: bold;
 }
