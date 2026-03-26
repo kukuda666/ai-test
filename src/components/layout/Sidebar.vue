@@ -1,143 +1,108 @@
-<script setup>
-import { ref } from 'vue';
-import { RouterLink } from 'vue-router';
-
-const menuItems = ref([
-  {
-    name: '运营平台',
-    icon: '📊', // Placeholder icon
-    children: [
-      { name: '待审企业管理', path: '#' },
-      { name: '待发票管核', path: '#' },
-      { name: '继续结算管理', path: '#' },
-      { name: '核查处置记录', path: '#' },
-      { name: '电子合同', path: '#' },
-    ]
-  },
-  {
-    name: '平台信息报送',
-    icon: '📝',
-    expanded: true, // This section appears expanded in the image
-    children: [
-      { name: '互联网平台报送', path: '#' },
-      { name: '身份信息报送', path: '/identity-submission' },
-      { name: '身份信息更正', path: '#' },
-      { name: '纳入信息报送', path: '#' },
-      { name: '纳入信息更正', path: '#' },
-      { name: '报送进度查询', path: '#' },
-    ]
-  },
-  // ... other top-level menu items if any, not fully visible
-]);
-
-const toggleSubMenu = (item) => {
-  item.expanded = !item.expanded;
-};
-</script>
-
 <template>
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h1 class="sidebar-title">运营平台</h1>
+  <el-menu
+    active-text-color="#ffd04b"
+    background-color="#304156"
+    class="el-menu-vertical-demo"
+    text-color="#bfcbd9"
+    :default-active="activeMenu"
+    router
+  >
+    <div class="logo-container">
+      <h1 class="logo-title">运营平台</h1>
     </div>
-    <nav class="sidebar-nav">
-      <ul>
-        <li v-for="item in menuItems" :key="item.name" class="menu-item">
-          <div class="menu-title" @click="item.children && toggleSubMenu(item)">
-            <span class="menu-icon">{{ item.icon }}</span>
-            <span>{{ item.name }}</span>
-            <span v-if="item.children" class="toggle-icon">{{ item.expanded ? '▼' : '▶' }}</span>
-          </div>
-          <ul v-if="item.children && item.expanded" class="submenu">
-            <li v-for="subItem in item.children" :key="subItem.name" class="submenu-item">
-              <RouterLink :to="subItem.path" active-class="active-link">{{ subItem.name }}</RouterLink>
-            </li>
-          </ul>
-        </li>
-      </ul>
-    </nav>
-  </aside>
+    <el-sub-menu index="1">
+      <template #title>
+        <el-icon><Monitor /></el-icon>
+        <span>平台信息报送</span>
+      </template>
+      <el-menu-item index="/identity-submission">
+        <el-icon><User /></el-icon>
+        <span>身份信息报送</span>
+      </el-menu-item>
+      <el-menu-item index="/other-submission-type-1">
+        <el-icon><Document /></el-icon>
+        <span>报送类型一</span>
+      </el-menu-item>
+      <el-menu-item index="/other-submission-type-2">
+        <el-icon><DocumentCopy /></el-icon>
+        <span>报送类型二</span>
+      </el-menu-item>
+    </el-sub-menu>
+
+    <!-- Placeholder for other menu items as per the image -->
+    <el-menu-item index="/generated-view">
+      <el-icon><DataBoard /></el-icon>
+      <span>等工企业管理</span>
+    </el-menu-item>
+    <el-menu-item index="/menu-item-2">
+      <el-icon><PieChart /></el-icon>
+      <span>等工渠道管理</span>
+    </el-menu-item>
+    <el-menu-item index="/menu-item-3">
+      <el-icon><Money /></el-icon>
+      <span>链块报酬结算</span>
+    </el-menu-item>
+    <el-menu-item index="/menu-item-4">
+      <el-icon><Tickets /></el-icon>
+      <span>链块查询记录</span>
+    </el-menu-item>
+    <el-menu-item index="/menu-item-5">
+      <el-icon><Reading /></el-icon>
+      <span>电子合同</span>
+    </el-menu-item>
+
+    <!-- Placeholder for other sub-menus -->
+    <el-sub-menu index="2">
+      <template #title>
+        <el-icon><Setting /></el-icon>
+        <span>系统设置</span>
+      </template>
+      <el-menu-item index="/setting-item-1">子菜单1</el-menu-item>
+      <el-menu-item index="/setting-item-2">子菜单2</el-menu-item>
+    </el-sub-menu>
+
+  </el-menu>
 </template>
 
+<script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import {
+  Monitor,
+  User,
+  Document,
+  DocumentCopy,
+  DataBoard,
+  PieChart,
+  Money,
+  Tickets,
+  Reading,
+  Setting
+} from '@element-plus/icons-vue';
+
+const route = useRoute();
+const activeMenu = computed(() => route.path);
+</script>
+
 <style scoped>
-.sidebar {
-  width: 240px;
-  background-color: var(--color-sidebar-bg);
-  color: var(--color-sidebar-text);
-  padding: 20px 0;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-  flex-shrink: 0;
+.el-menu-vertical-demo:not(.el-menu--collapse) {
+  width: 200px;
+  min-height: 400px;
 }
-
-.sidebar-header {
-  padding: 0 20px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 20px;
-}
-
-.sidebar-title {
-  font-size: 24px;
-  margin: 0;
-  color: #fff;
-}
-
-.sidebar-nav ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.menu-item {
-  margin-bottom: 5px;
-}
-
-.menu-title {
+.logo-container {
+  height: 60px;
   display: flex;
   align-items: center;
-  padding: 12px 20px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 15px;
-  transition: background-color 0.2s;
-  color: var(--color-sidebar-text);
+  justify-content: center;
+  background-color: #2b2f3a;
 }
-
-.menu-title:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.menu-icon {
-  margin-right: 10px;
-  font-size: 18px;
-}
-
-.toggle-icon {
-  margin-left: auto;
-  font-size: 12px;
-}
-
-.submenu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
-.submenu-item a {
-  display: block;
-  padding: 10px 20px 10px 45px; /* Indent sub-items */
-  color: var(--color-sidebar-text);
-  text-decoration: none;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.submenu-item a:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-}
-
-.submenu-item a.active-link {
-  background-color: var(--color-primary); /* Highlight active link */
+.logo-title {
   color: #fff;
+  font-size: 20px;
+  margin: 0;
+  font-weight: 600;
+}
+.el-menu {
+  border-right: none;
 }
 </style>
