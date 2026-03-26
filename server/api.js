@@ -1,128 +1,80 @@
+// This file is likely for a Node.js/Express backend, and will need implementation.
+// For now, it's an empty placeholder as the task focuses on frontend and API spec.
+// Example structure:
+/*
 const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
+const router = express.Router();
 
-const app = express();
-const port = 3000;
+// Mock data store (replace with actual database)
+let personnelData = Array.from({ length: 100 }, (_, i) => ({
+    id: i + 1,
+    reportingPeriod: '2023-11',
+    name: `测试人员${i + 1}`,
+    idNumber: `32108119900101${String(i + 1).padStart(4, '0')}`,
+    idType: '居民身份证',
+    nationality: '中国',
+    birthplace: '江苏',
+    birthDate: '1990-01-01',
+    gender: i % 2 === 0 ? '男' : '女',
+    contactPhone: `138001380${String(i + 1).padStart(2, '0')}`,
+    contactName: `联系人${i + 1}`,
+    status: ['已报送', '待报送', '报送失败', '部分成功'][Math.floor(Math.random() * 4)],
+    submissionTime: i % 3 === 0 ? '2023-11-15 10:30:00' : ''
+}));
 
-// Enable CORS for all routes - IMPORTANT for frontend to communicate
-app.use(cors()); 
-// To parse JSON request bodies
-app.use(bodyParser.json()); 
+// GET /api/personnel/submission
+router.get('/personnel/submission', (req, res) => {
+    const { period, keyword, page = 1, limit = 10 } = req.query;
+    let filteredData = [...personnelData];
 
-// Mock data for personnel
-let mockPersonnelData = [];
-const generateMockData = (count = 50) => {
-  const data = [];
-  const idTypes = ['身份证', '护照', '驾驶证'];
-  const genders = ['男', '女'];
-  for (let i = 1; i <= count; i++) {
-    const period = `2023-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}`;
-    const idType = idTypes[Math.floor(Math.random() * idTypes.length)];
-    // Simplified ID number generation
-    const idNumber = `32010${Math.floor(Math.random() * 900000000000) + 100000000000}`.substring(0, 18); 
-    const name = `张三${i}`;
-    const gender = genders[Math.floor(Math.random() * genders.length)];
-    const dob = `198${Math.floor(Math.random() * 10)}-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`;
-    const contactPhone = `13${Math.floor(Math.random() * 900000000) + 100000000}`;
-    data.push({
-      id: i,
-      period,
-      idType,
-      idNumber,
-      name,
-      gender,
-      dob,
-      contactPhone,
-      status: 'pending', // Added status for reporting simulation: 'pending', 'reported', 'failed'
-    });
-  }
-  return data;
-};
-
-mockPersonnelData = generateMockData();
-
-// API to get personnel list
-app.get('/api/personnel', (req, res) => {
-  const { period, keyword, currentPage = 1, pageSize = 10 } = req.query;
-
-  let filteredData = mockPersonnelData;
-
-  // Filter by period
-  if (period) {
-    filteredData = filteredData.filter(p => p.period.includes(period));
-  }
-  // Filter by keyword (ID number or Name)
-  if (keyword) {
-    const lowerCaseKeyword = keyword.toLowerCase();
-    filteredData = filteredData.filter(p =>
-      p.idNumber.toLowerCase().includes(lowerCaseKeyword) || 
-      p.name.toLowerCase().includes(lowerCaseKeyword)
-    );
-  }
-
-  // Pagination
-  const page = parseInt(currentPage);
-  const size = parseInt(pageSize);
-  const startIndex = (page - 1) * size;
-  const endIndex = page * size;
-
-  const paginatedData = filteredData.slice(startIndex, endIndex);
-
-  res.json({
-    data: paginatedData,
-    total: filteredData.length,
-    currentPage: page,
-    pageSize: size,
-  });
-});
-
-// API to report personnel
-app.post('/api/report', (req, res) => {
-  const { ids } = req.body; // ids is an array of personnel IDs to be reported
-
-  if (!ids || !Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ message: 'No personnel IDs provided for reporting.' });
-  }
-
-  let successCount = 0;
-  let failureCount = 0;
-  const failureDetails = [];
-
-  ids.forEach(id => {
-    const personIndex = mockPersonnelData.findIndex(p => p.id === id);
-    if (personIndex !== -1) {
-      // Simulate some failures (e.g., random 20% failure rate) and already reported status
-      if (mockPersonnelData[personIndex].status === 'reported') {
-        failureCount++;
-        failureDetails.push(`ID: ${id} - 已报送`);
-      } else if (Math.random() < 0.2) { // 20% chance of failure
-        failureCount++;
-        failureDetails.push(`ID: ${id} - 模拟报送失败`);
-        mockPersonnelData[personIndex].status = 'failed'; // Update status to 'failed'
-      } else {
-        successCount++;
-        mockPersonnelData[personIndex].status = 'reported'; // Update status to 'reported'
-      }
-    } else {
-      failureCount++;
-      failureDetails.push(`ID: ${id} - 未找到人员`);
+    if (period) {
+        filteredData = filteredData.filter(p => p.reportingPeriod === period);
     }
-  });
+    if (keyword) {
+        filteredData = filteredData.filter(p => 
+            p.idNumber.includes(keyword) || p.name.includes(keyword)
+        );
+    }
 
-  res.json({
-    message: 'Reporting process completed.',
-    successCount,
-    failureCount,
-    failureDetails,
-    reportedIds: ids,
-  });
+    const start = (parseInt(page) - 1) * parseInt(limit);
+    const end = start + parseInt(limit);
+    const paginatedData = filteredData.slice(start, end);
+
+    res.json({
+        list: paginatedData,
+        total: filteredData.length,
+        page: parseInt(page),
+        limit: parseInt(limit)
+    });
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Backend server listening at http://localhost:${port}`);
-  console.log('To run this backend, ensure you have Node.js installed.');
-  console.log('Install dependencies: npm install express cors body-parser');
-  console.log('Then run: node server.js');
+// POST /api/personnel/submit
+router.post('/personnel/submit', (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: '提交的ID列表不能为空。' });
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+
+    ids.forEach(id => {
+        const index = personnelData.findIndex(p => p.id === id);
+        if (index !== -1) {
+            // Simulate some submission failures randomly
+            if (Math.random() > 0.1) { // 90% success rate
+                personnelData[index].status = '已报送';
+                personnelData[index].submissionTime = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+                successCount++;
+            } else {
+                personnelData[index].status = '报送失败';
+                failCount++;
+            }
+        }
+    });
+
+    res.json({ message: '报送处理完成', successCount, failCount });
 });
+
+module.exports = router;
+*/
