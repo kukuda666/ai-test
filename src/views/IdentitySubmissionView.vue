@@ -1,419 +1,404 @@
-<script setup>
-import { ref, onMounted } from 'vue';
-
-const reportingPeriod = ref('');
-const keyword = ref('');
-const personnelList = ref([]);
-const selectedPersonnelIds = ref([]);
-const showSubmissionResultModal = ref(false);
-const submissionResult = ref({
-  total: 0,
-  success: 0,
-  failed: 0,
-  skipped: 0
-});
-
-// Dummy data for demonstration
-const dummyPersonnel = [
-  {
-    id: 'p1001',
-    no: 1,
-    period: '2023-11',
-    unifiedId: '-',
-    category: '-',
-    name: '张三',
-    idType: '身份证',
-    idNumber: '3219XXX...',
-    nationality: '中国',
-    gender: '男',
-    dob: '198X-XX-XX',
-    contact: '139XXXXXX',
-    status: '待报送',
-    remark: '-'
-  },
-  {
-    id: 'p1002',
-    no: 2,
-    period: '2023-11',
-    unifiedId: '-',
-    category: '-',
-    name: '李四',
-    idType: '身份证',
-    idNumber: '3219YYY...',
-    nationality: '中国',
-    gender: '女',
-    dob: '199X-XX-XX',
-    contact: '138YYYYYY',
-    status: '已报送',
-    remark: '报送成功'
-  },
-  {
-    id: 'p1003',
-    no: 3,
-    period: '2023-10',
-    unifiedId: '-',
-    category: '-',
-    name: '王五',
-    idType: '身份证',
-    idNumber: '3219ZZZ...',
-    nationality: '中国',
-    gender: '男',
-    dob: '197X-XX-XX',
-    contact: '137ZZZZZZ',
-    status: '待报送',
-    remark: '-'
-  }
-];
-
-const fetchPersonnelList = async () => {
-  console.log('Fetching personnel with:', reportingPeriod.value, keyword.value);
-  // In a real app, make an API call here.
-  // Example: const response = await fetch(`/api/personnel/submission?period=${reportingPeriod.value}&keyword=${keyword.value}`);
-  // personnelList.value = await response.json();
-
-  // Simulate API call with dummy data
-  let filteredList = dummyPersonnel;
-  if (reportingPeriod.value) {
-    filteredList = filteredList.filter(p => p.period === reportingPeriod.value);
-  }
-  if (keyword.value) {
-    filteredList = filteredList.filter(p => 
-      p.name.includes(keyword.value) || p.idNumber.includes(keyword.value)
-    );
-  }
-  personnelList.value = filteredList;
-  selectedPersonnelIds.value = []; // Clear selection on new search
-};
-
-const submitPersonnel = async (ids) => {
-  if (ids.length === 0) {
-    alert('请选择需要报送的人员！');
-    return;
-  }
-  console.log('Submitting personnel with IDs:', ids);
-  // In a real app, make an API call here.
-  // Example: const response = await fetch('/api/personnel/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }) });
-  // const result = await response.json();
-  // submissionResult.value = result;
-
-  // Simulate API call with dummy data
-  const successfulSubmissions = ids.filter(id => personnelList.value.find(p => p.id === id && p.status === '待报送'));
-  const failedSubmissions = ids.filter(id => personnelList.value.find(p => p.id === id && p.status === '已报送')); // Already submitted would be a 'failure' to re-submit
-
-  submissionResult.value = {
-    total: ids.length,
-    success: successfulSubmissions.length,
-    failed: failedSubmissions.length,
-    skipped: ids.length - successfulSubmissions.length - failedSubmissions.length // Example: if some were invalid IDs
-  };
-
-  // Update status in frontend (optimistic update or after actual API success)
-  successfulSubmissions.forEach(id => {
-    const index = personnelList.value.findIndex(p => p.id === id);
-    if (index !== -1) {
-      personnelList.value[index].status = '已报送';
-      personnelList.value[index].remark = '报送成功';
-    }
-  });
-
-  showSubmissionResultModal.value = true;
-};
-
-const oneClickSubmit = () => {
-  const idsToSubmit = personnelList.value.filter(p => p.status === '待报送').map(p => p.id);
-  submitPersonnel(idsToSubmit);
-};
-
-const postponeSubmission = async () => {
-  if (selectedPersonnelIds.value.length === 0) {
-    alert('请选择需要暂缓报送的人员！');
-    return;
-  }
-  console.log('Postponing personnel with IDs:', selectedPersonnelIds.value);
-  // In a real app, make an API call here.
-  // Example: const response = await fetch('/api/personnel/postpone', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: selectedPersonnelIds.value }) });
-  // Handle response
-
-  alert(`已对选中的 ${selectedPersonnelIds.value.length} 人员进行暂缓报送操作 (假定成功).`);
-  selectedPersonnelIds.value = []; // Clear selection
-};
-
-
-const handleRowSelection = (id, isChecked) => {
-  if (isChecked) {
-    selectedPersonnelIds.value.push(id);
-  } else {
-    selectedPersonnelIds.value = selectedPersonnelIds.value.filter(item => item !== id);
-  }
-};
-
-const isSelected = (id) => selectedPersonnelIds.value.includes(id);
-
-onMounted(() => {
-  fetchPersonnelList(); // Load initial data
-});
-</script>
-
 <template>
-  <div class="identity-submission-view card">
-    <h3 class="view-title">平台内的经营者和从业人员身份信息报送表</h3>
+  <div class="identity-submission-view">
+    <h2 class="page-header-title">平台内的经营者和从业人员身份信息报送表</h2>
+    <p class="page-description">根据税务总局《涉税专业服务机构身份信息报送办法（试行）》相关规定，平台定期向税务机关报送经营者和从业人员身份信息。</p>
 
-    <div class="search-form">
-      <div class="form-group">
-        <label for="reportingPeriod">所属期:</label>
-        <input type="month" id="reportingPeriod" v-model="reportingPeriod" class="input-field" placeholder="YYYY-MM">
+    <div class="search-area">
+      <el-form :inline="true" :model="searchForm" class="demo-form-inline">
+        <el-form-item label="所属期">
+          <el-date-picker
+            v-model="searchForm.period"
+            type="month"
+            placeholder="选择所属月份"
+            value-format="YYYY-MM"
+          />
+        </el-form-item>
+        <el-form-item label="关键字">
+          <el-input v-model="searchForm.keyword" placeholder="证件号/姓名" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSubmit">查询</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <div class="table-area">
+      <div class="table-header-actions">
+        <el-button type="primary" @click="reportSelected">一键报送</el-button>
+        <el-button @click="refreshData">刷新报送状态</el-button>
       </div>
-      <div class="form-group">
-        <label for="keyword">关键字查询:</label>
-        <input type="text" id="keyword" v-model="keyword" class="input-field" placeholder="证件号 / 姓名">
-      </div>
-      <button @click="fetchPersonnelList" class="button">查询</button>
-      <button @click="oneClickSubmit" class="button primary-button">一键报送</button>
-      <button @click="postponeSubmission" class="button secondary-button">暂缓报送</button>
+
+      <el-table
+        :data="personnelList"
+        style="width: 100%"
+        border
+        @selection-change="handleSelectionChange"
+        v-loading="loading"
+      >
+        <el-table-column type="selection" width="55" />
+        <el-table-column prop="id" label="序号" width="60" />
+        <el-table-column prop="reportingPeriod" label="所属期" width="100" />
+        <el-table-column prop="name" label="姓名" width="100" />
+        <el-table-column prop="idNumber" label="证件号" width="180" />
+        <el-table-column prop="idType" label="证件类型" width="100" />
+        <el-table-column prop="nationality" label="国籍" width="80" />
+        <el-table-column prop="birthplace" label="出生地" width="100" />
+        <el-table-column prop="birthDate" label="出生日期" width="120" />
+        <el-table-column prop="gender" label="性别" width="70" />
+        <el-table-column prop="contactPhone" label="联系电话" width="120" />
+        <el-table-column prop="contactName" label="联系人姓名" width="100" />
+        <el-table-column prop="status" label="报送状态" width="100">
+          <template #default="scope">
+            <el-tag :type="getStatusTagType(scope.row.status)">{{ scope.row.status }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="submissionTime" label="报送时间" width="160" />
+        <el-table-column label="操作" fixed="right" width="100">
+          <template #default="scope">
+            <el-button link type="primary" size="small" @click="handleDetail(scope.row)">详情</el-button>
+            <el-button link type="danger" size="small" @click="handleResubmit(scope.row)">补报</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-pagination
+        class="pagination-container"
+        background
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+        v-model:current-page="pagination.page"
+        v-model:page-size="pagination.limit"
+        :page-sizes="[10, 20, 50, 100]"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
     </div>
 
-    <div class="alert-info info-box-top">
-      1. 校验规则参照以上政策法规和标准文件，若有误，请及时向平台实名办反馈。
-    </div>
+    <!-- Alert/Dialog components for various prompts -->
+    <el-dialog
+      v-model="showSubmitDialog"
+      title="提示"
+      width="30%"
+      center
+    >
+      <span>本次报送结果：</span>
+      <p>报送成功记录: {{ submitResult.successCount }} 条</p>
+      <p>报送失败记录: {{ submitResult.failCount }} 条</p>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button type="primary" @click="showSubmitDialog = false">知道了</el-button>
+        </span>
+      </template>
+    </el-dialog>
 
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th><input type="checkbox" @change="e => selectedPersonnelIds = e.target.checked ? personnelList.map(p => p.id) : []" :checked="selectedPersonnelIds.length === personnelList.length && personnelList.length > 0"></th>
-            <th>序号</th>
-            <th>所属期</th>
-            <th>一体化报送标识</th>
-            <th>专业类别</th>
-            <th>姓名</th>
-            <th>证件种类</th>
-            <th>证件号</th>
-            <th>国籍地区</th>
-            <th>性别</th>
-            <th>出生日期</th>
-            <th>联系电话</th>
-            <th>报送状态</th>
-            <th>报送操作</th>
-            <th>备注</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="person in personnelList" :key="person.id">
-            <td><input type="checkbox" :checked="isSelected(person.id)" @change="e => handleRowSelection(person.id, e.target.checked)"></td>
-            <td>{{ person.no }}</td>
-            <td>{{ person.period }}</td>
-            <td>{{ person.unifiedId }}</td>
-            <td>{{ person.category }}</td>
-            <td>{{ person.name }}</td>
-            <td>{{ person.idType }}</td>
-            <td>{{ person.idNumber }}</td>
-            <td>{{ person.nationality }}</td>
-            <td>{{ person.gender }}</td>
-            <td>{{ person.dob }}</td>
-            <td>{{ person.contact }}</td>
-            <td>
-              <span :class="{'status-success': person.status === '已报送', 'status-warning': person.status === '待报送'}">
-                {{ person.status }}
-              </span>
-            </td>
-            <td>
-              <button
-                v-if="person.status === '待报送'"
-                @click="submitPersonnel([person.id])"
-                class="button small-button"
-              >
-                报送
-              </button>
-              <span v-else>--</span>
-            </td>
-            <td>{{ person.remark }}</td>
-          </tr>
-          <tr v-if="personnelList.length === 0">
-            <td colspan="15" class="no-data">暂无数据</td>
-          </tr>
-        </tbody>
-      </table>
+    <el-alert
+      v-if="showAlert" 
+      title="1.税务总局通过线上获取的涉税专业服务机构基本信息，作为平台内经营者身份信息，并报送。" 
+      type="info" 
+      show-icon 
+      :closable="false"
+      style="margin-top: 20px;"
+    />
+    
+    <!-- Other informational boxes can be implemented similarly with el-alert or custom divs -->
+    <div class="info-box tips-box" v-if="showTips">
+      <h3>问题</h3>
+      <p>1. 数据报错，如何修改？</p>
+      <p>2. 涉税机构发生企业信息变更，例如：注销报送资格的，还需要再次报送与企业变更后的身份信息吗？</p>
+      <p>3. 报送业务能否撤回？（不能撤回）</p>
     </div>
-
-    <div class="pagination">
-      <!-- Pagination components would go here in a real app -->
-      <p>Total {{ personnelList.length }} items</p>
-    </div>
-
-    <div class="alert-info info-box-bottom">
-      <p>温馨提示：若数据有误，需自行修改或撤销报送。</p>
-      <p>具体操作流程：</p>
-      <ul>
-        <li>【修改撤销】一体化报送：暂不支持修改撤销操作，需联系主管税务机关处理</li>
-        <li>【修改撤销】二次报送：一体化报送：暂不支持修改撤销操作，需联系主管税务机关处理</li>
-        <li>【修改撤销】一体化报送：暂不支持修改撤销操作，需联系主管税务机关处理</li>
-        <li>【修改撤销】一体化报送：暂不支持修改撤销操作，需联系主管税务机关处理</li>
-      </ul>
-      <p>问题：1. 未报送数总和，核对后与实际不一致？</p>
-      <p>2. 请检查核对企业注册信息是否完整，企业信息报送渠道是否匹配，报送数据是否正确？</p>
-      <p>3. 确认企业注册信息后，如果实际报送人员数据不一致，请核对人员信息是否完整。</p>
-      <p style="text-align: center; margin-top: 20px; font-weight: bold; color: var(--color-primary);">点击报送一体化，企业代表企业依法报送个人税赋信息，请确认无误后点击。</p>
-    </div>
-
-    <!-- Submission Result Modal -->
-    <div v-if="showSubmissionResultModal" class="modal-overlay">
-      <div class="modal-content">
-        <div class="modal-header">
-          <span>提示</span>
-          <button @click="showSubmissionResultModal = false" class="modal-close-button">&times;</button>
-        </div>
-        <div class="modal-body">
-          <p>本次共提交报送数据：{{ submissionResult.total }}条</p>
-          <p>报送成功记录：{{ submissionResult.success }}条</p>
-          <p>报送失败记录：{{ submissionResult.failed }}条</p>
-          <p>报送跳过记录：{{ submissionResult.skipped }}条</p>
-        </div>
-        <div class="modal-footer">
-          <button @click="showSubmissionResultModal = false" class="button">知道了</button>
-        </div>
-      </div>
+    <div class="info-box advice-box" v-if="showAdvice">
+      <h3>建议</h3>
+      <p>1. 报送规则：首次报送自动匹配在税务管理系统获取，上次报送数据，新增从业人员信息（以资质为准），更新即报。</p>
+      <p>2. 变更：从业人员信息发生变更后，企业需从报发单处修改各项信息，更新，关联修改更新。</p>
+      <p>3. 撤回（从业人员需在平台）：问题人员进行删除操作（目前暂无此功能）</p>
     </div>
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import { ElMessage, ElMessageBox } from 'element-plus';
+
+const searchForm = ref({
+  period: '',
+  keyword: '',
+});
+
+const personnelList = ref([]);
+const selectedPersonnel = ref([]);
+const loading = ref(false);
+const total = ref(0);
+const pagination = ref({
+  page: 1,
+  limit: 10,
+});
+
+const showSubmitDialog = ref(false);
+const submitResult = ref({
+  successCount: 0,
+  failCount: 0,
+});
+
+const showAlert = ref(true); // Example for the top alert
+const showTips = ref(true); // Example for the '问题' box
+const showAdvice = ref(true); // Example for the '建议' box
+
+const getStatusTagType = (status) => {
+  switch (status) {
+    case '已报送': return 'success';
+    case '待报送': return 'info';
+    case '报送失败': return 'danger';
+    case '部分成功': return 'warning';
+    default: return '';
+  }
+};
+
+const fetchPersonnelList = async () => {
+  loading.value = true;
+  try {
+    const params = {
+      period: searchForm.value.period,
+      keyword: searchForm.value.keyword,
+      page: pagination.value.page,
+      limit: pagination.value.limit,
+    };
+    const response = await axios.get('/api/personnel/submission', { params });
+    personnelList.value = response.data.list.map((item, index) => ({ // Add an artificial id for selection
+      ...item,
+      id: (pagination.value.page - 1) * pagination.value.limit + index + 1,
+    }));
+    total.value = response.data.total;
+  } catch (error) {
+    ElMessage.error('获取人员列表失败：' + (error.response?.data?.message || error.message));
+  } finally {
+    loading.value = false;
+  }
+};
+
+const onSubmit = () => {
+  pagination.value.page = 1;
+  fetchPersonnelList();
+};
+
+const handleSelectionChange = (val) => {
+  selectedPersonnel.value = val;
+};
+
+const reportSelected = async () => {
+  if (selectedPersonnel.value.length === 0) {
+    ElMessage.warning('请至少选择一条记录进行报送。');
+    return;
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定报送选中的 ${selectedPersonnel.value.length} 条人员身份信息吗？`,
+      '确认报送',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+
+    const idsToSubmit = selectedPersonnel.value.map(p => p.id);
+    const response = await axios.post('/api/personnel/submit', { ids: idsToSubmit });
+
+    submitResult.value.successCount = response.data.successCount || 0;
+    submitResult.value.failCount = response.data.failCount || 0;
+    showSubmitDialog.value = true;
+
+    ElMessage.success('报送操作已完成。');
+    fetchPersonnelList(); // Refresh data after submission
+  } catch (error) {
+    if (error !== 'cancel') { // User clicked cancel on MessageBox
+      ElMessage.error('报送失败：' + (error.response?.data?.message || error.message));
+    }
+  }
+};
+
+const refreshData = () => {
+  fetchPersonnelList();
+  ElMessage.success('报送状态已刷新。');
+};
+
+const handleDetail = (row) => {
+  ElMessage.info(`查看 ${row.name} 的详情。`);
+  // Implement navigation or dialog for detail view
+};
+
+const handleResubmit = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定补报 ${row.name} (证件号: ${row.idNumber}) 的身份信息吗？`,
+      '确认补报',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    );
+    const response = await axios.post('/api/personnel/submit', { ids: [row.id] });
+    if (response.data.successCount > 0) {
+      ElMessage.success(`${row.name} 补报成功！`);
+      fetchPersonnelList();
+    } else {
+      ElMessage.warning(`${row.name} 补报未能成功。`);
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('补报失败：' + (error.response?.data?.message || error.message));
+    }
+  }
+};
+
+const handleSizeChange = (val) => {
+  pagination.value.limit = val;
+  fetchPersonnelList();
+};
+
+const handleCurrentChange = (val) => {
+  pagination.value.page = val;
+  fetchPersonnelList();
+};
+
+onMounted(() => {
+  fetchPersonnelList();
+});
+
+// Mock Data (remove in real application)
+if (import.meta.env.DEV) {
+  const generateMockData = (count) => {
+    const data = [];
+    const statuses = ['已报送', '待报送', '报送失败', '部分成功'];
+    for (let i = 1; i <= count; i++) {
+      data.push({
+        id: i,
+        reportingPeriod: '2023-11',
+        name: `张三${i}`,
+        idNumber: `32108119900101${String(i).padStart(4, '0')}`,
+        idType: '居民身份证',
+        nationality: '中国',
+        birthplace: '江苏',
+        birthDate: '1990-01-01',
+        gender: i % 2 === 0 ? '男' : '女',
+        contactPhone: `138001380${String(i).padStart(2, '0')}`,
+        contactName: `联系人${i}`,
+        status: statuses[Math.floor(Math.random() * statuses.length)],
+        submissionTime: i % 3 === 0 ? '2023-11-15 10:30:00' : ''
+      });
+    }
+    return data;
+  };
+  // Replace axios.get and axios.post in dev mode for quick testing
+  axios.get = (url, config) => {
+    if (url === '/api/personnel/submission') {
+      const { page, limit, period, keyword } = config.params;
+      let mockList = generateMockData(100);
+      if (period) {
+        mockList = mockList.filter(item => item.reportingPeriod === period);
+      }
+      if (keyword) {
+        mockList = mockList.filter(item => 
+          item.idNumber.includes(keyword) || item.name.includes(keyword)
+        );
+      }
+      const start = (page - 1) * limit;
+      const end = start + limit;
+      return Promise.resolve({
+        data: { 
+          list: mockList.slice(start, end),
+          total: mockList.length
+        }
+      });
+    }
+    return Promise.reject(new Error('Unknown API'));
+  };
+  axios.post = (url, data) => {
+    if (url === '/api/personnel/submit') {
+      const { ids } = data;
+      const successCount = ids.length - Math.floor(Math.random() * ids.length / 2); // Simulate some failures
+      const failCount = ids.length - successCount;
+      return Promise.resolve({ data: { successCount, failCount } });
+    }
+    return Promise.reject(new Error('Unknown API'));
+  };
+}
+</script>
+
 <style scoped>
 .identity-submission-view {
-  padding: 30px;
-  background-color: var(--color-background-soft);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 20px;
 }
 
-.view-title {
-  margin-top: 0;
-  margin-bottom: 25px;
-  font-size: 20px;
-  color: var(--color-text-dark);
-}
-
-.search-form {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap; /* Allow wrapping on smaller screens */
-}
-
-.form-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.form-group label {
-  font-size: 14px;
-  color: var(--color-text-dark);
-}
-
-.primary-button {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
-}
-
-.secondary-button {
-  background-color: #fff;
-  border-color: #dcdfe6;
-  color: var(--color-text-dark);
-}
-.secondary-button:hover {
-  background-color: #f5f7fa;
-  border-color: #c0c4cc;
-}
-
-.small-button {
-  padding: 5px 10px;
-  font-size: 12px;
-}
-
-.info-box-top {
-  margin-bottom: 20px;
-}
-
-.table-container {
-  overflow-x: auto;
-  margin-bottom: 20px;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  white-space: nowrap; /* Prevent text wrapping in table cells */
-}
-
-table thead th {
-  background-color: var(--color-table-header);
-  padding: 12px 15px;
-  text-align: left;
-  font-weight: bold;
-  font-size: 14px;
-  color: var(--color-text-dark);
-  border-bottom: 1px solid var(--color-border);
-}
-
-table tbody td {
-  padding: 10px 15px;
-  border-bottom: 1px solid var(--color-border);
-  font-size: 13px;
-  color: var(--color-text-light);
-}
-
-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-table tbody tr:hover {
-  background-color: #f8f8f8;
-}
-
-.status-success {
-  color: var(--color-success);
-  font-weight: bold;
-}
-
-.status-warning {
-  color: var(--color-warning);
-  font-weight: bold;
-}
-
-.no-data {
-  text-align: center;
-  padding: 40px !important;
-  color: var(--color-text-light);
-}
-
-.pagination {
-  text-align: right;
-  margin-top: 20px;
-  color: var(--color-text-light);
-  font-size: 14px;
-}
-
-.info-box-bottom {
-  margin-top: 30px;
-}
-
-.info-box-bottom ul {
-  list-style-type: disc;
-  margin-left: 20px;
-  padding-left: 0;
-  margin-bottom: 15px;
-}
-.info-box-bottom li {
-  margin-bottom: 5px;
-}
-.info-box-bottom p {
+.page-header-title {
+  font-size: 24px;
   margin-bottom: 10px;
-  line-height: 1.6;
+  color: #333;
 }
-.info-box-bottom p:last-of-type {
-    margin-bottom: 0;
+
+.page-description {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.search-area {
+  background-color: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.table-area {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.table-header-actions {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.pagination-container {
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.info-box {
+  background-color: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 4px;
+  padding: 15px;
+  margin-top: 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.tips-box {
+  background-color: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+.advice-box {
+  background-color: #f6ffed;
+  border-color: #b7eb8f;
+}
+
+.info-box h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+.dialog-footer button:first-child {
+  margin-right: 10px;
 }
 </style>
